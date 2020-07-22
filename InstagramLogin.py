@@ -5,9 +5,6 @@
 
 from time import sleep
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait as wait
-from selenium.common.exceptions import TimeoutException
 import chromedriver_binary
 from bs4 import BeautifulSoup
 
@@ -47,36 +44,17 @@ def getHTML(username, password, target):
     numFollowers1 = int(numFollowers.replace(',', ''))
     numFollowing1 = int(numFollowing.replace(',', ''))
 
-    followers = driver.find_element_by_css_selector("a[href='/a.trash.bin/followers/']")
+    followers = driver.find_element_by_css_selector("a[href='/{0}/followers/']".format(target))
     followers.click()
 
     sleep(2)
 
     followerDialog = driver.find_element_by_xpath("//div[@class='isgrP']")
     scroll = 0
-    while scroll < 135:
+    while scroll < .25*(numFollowers1-18):
         driver.execute_script('arguments[0].scrollTop = arguments[0].scrollTop + arguments[0].offsetHeight;', followerDialog)
         sleep(1)
         scroll += 1
-
-    # dialog = driver.find_element_by_xpath("//div[@class='PZuss']")
-    # numFollowers = int(driver.find_element_by_css_selector("span[class='g47SY ']").text)
-    #
-    # for i in range(int(numFollowers / 2)):
-    #     driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", dialog)
-    #     sleep(1)
-
-    # currRows1 = len(driver.find_elements_by_css_selector("a[class='FPmhX notranslate  _0imsa ']"))
-    # while True:
-    #     driver.find_element_by_css_selector("a[class='FPmhX notranslate  _0imsa ']").send_keys(Keys.END)
-    #     try:
-    #         wait(driver, 5).until(
-    #             lambda: len(driver.find_elements_by_css_selector("a[class='FPmhX notranslate  _0imsa ']")) > currRows1)
-    #         currRows1 = len(driver.find_elements_by_css_selector("a[class='FPmhX notranslate  _0imsa ']"))
-    #     except TimeoutException:
-    #         break
-    #
-    # sleep(2)
 
     sleep(2)
 
@@ -86,10 +64,18 @@ def getHTML(username, password, target):
     close.click()
     sleep(1)
 
-    following = driver.find_element_by_css_selector("a[href='/a.trash.bin/following/']")
+    following = driver.find_element_by_css_selector("a[href='/{0}/following/']".format(target))
     following.click()
 
     sleep(2)
+
+    followingDialog = driver.find_element_by_xpath("//div[@class='isgrP']")
+    scroll = 0
+    while .25*(numFollowing1-18):
+        driver.execute_script('arguments[0].scrollTop = arguments[0].scrollTop + arguments[0].offsetHeight;',
+                              followingDialog)
+        sleep(1)
+        scroll += 1
 
     htmlFollowing = driver.page_source
 
@@ -98,5 +84,10 @@ def getHTML(username, password, target):
 
     return numFollowing1, numFollowers1, htmlFollowing, htmlFollowers
 
+def getList(htmlList):
+    soup = BeautifulSoup(htmlList.content, 'html.parser')
 
-print(getHTML('a.trash.bin', 'Animorphs2550#', "a.trash.bin"))
+    soupList = soup.find_all('a', class_="FPmhX notranslate  _0imsa ")
+
+
+    return soupList
